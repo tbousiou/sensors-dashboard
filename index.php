@@ -11,8 +11,15 @@ $sensors = getSensorsWithTodayStats();
 <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Page Title -->
     <div class="mb-8">
-        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Sensors Dashboard</h2>
-        <p class="text-gray-600">Real-time monitoring of sensor readings and volume metrics</p>
+        <div class="flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Sensors Dashboard</h2>
+                <p class="text-gray-600">Real-time monitoring of sensor readings and volume metrics</p>
+            </div>
+            <a href="pages/analytics.php" class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                📊 View Analytics
+            </a>
+        </div>
     </div>
 
     <!-- Sensors Grid -->

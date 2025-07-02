@@ -44,8 +44,16 @@
                     </div>
                 </div>
 
-                <!-- Login Link -->
-                <div class="flex items-center">
+                <!-- Navigation Links -->
+                <div class="flex items-center space-x-4">
+                    <a href="<?= str_contains($_SERVER['REQUEST_URI'], 'pages/') ? '../index.php' : 'index.php' ?>" 
+                       class="text-gray-500 hover:text-industrial-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        Dashboard
+                    </a>
+                    <a href="<?= str_contains($_SERVER['REQUEST_URI'], 'pages/') ? 'analytics.php' : 'pages/analytics.php' ?>" 
+                       class="text-gray-500 hover:text-industrial-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        Analytics
+                    </a>
                     <a href="#" class="text-gray-500 hover:text-industrial-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                         Login
                     </a>
