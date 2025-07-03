@@ -1,8 +1,8 @@
 <?php
 // Load environment variables from .env file
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';  // Updated path
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');  // Updated path
 $dotenv->load();
 
 // Database configuration for sensors dashboard

@@ -1,10 +1,6 @@
 <?php
 session_start();
-// Load environment variables from .env file
-require_once __DIR__ . '/../vendor/autoload.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
 /**
  * Check if user is authenticated
  */
@@ -13,13 +9,34 @@ function isAuthenticated() {
 }
 
 /**
+ * Get auth credentials from .env file
+ */
+function getAuthCredentials() {
+    $envFile = __DIR__ . '/../../.env';  // Updated path
+    $credentials = ['username' => 'admin', 'password' => 'admin']; // defaults
+    
+    if (file_exists($envFile)) {
+        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            if (strpos($line, 'AUTH_USERNAME=') === 0) {
+                $credentials['username'] = trim(substr($line, 14));
+            }
+            if (strpos($line, 'AUTH_PASSWORD=') === 0) {
+                $credentials['password'] = trim(substr($line, 14));
+            }
+        }
+    }
+    
+    return $credentials;
+}
+
+/**
  * Authenticate user with credentials
  */
 function authenticate($username, $password) {
-    $validUsername = $_ENV['AUTH_USERNAME'] ?? 'admin';
-    $validPassword = $_ENV['AUTH_PASSWORD'] ?? 'admin';
+    $credentials = getAuthCredentials();
     
-    if ($username === $validUsername && $password === $validPassword) {
+    if ($username === $credentials['username'] && $password === $credentials['password']) {
         $_SESSION['authenticated'] = true;
         $_SESSION['username'] = $username;
         return true;
@@ -52,7 +69,7 @@ function requireAuth() {
  */
 function getLoginUrl() {
     $currentDir = dirname($_SERVER['PHP_SELF']);
-    if (strpos($currentDir, '/pages') !== false) {
+    if (strpos($currentDir, '/api') !== false) {
         return '../login.php';
     }
     return 'login.php';
