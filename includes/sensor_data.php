@@ -47,28 +47,7 @@ function getStatusBadge($status) {
     return $badges[$status] ?? $badges['inactive'];
 }
 
-/**
- * Get sensor icon based on sensor name/type
- */
-function getSensorIcon($sensorName) {
-    $icons = [
-        'Kitchen Tap' => ['bg-blue-100', 'text-blue-600'],
-        'Bathroom Shower' => ['bg-cyan-100', 'text-cyan-600'],
-        'Garden Sprinkler' => ['bg-green-100', 'text-green-600'],
-        'Laundry Machine' => ['bg-orange-100', 'text-orange-600'],
-    ];
-    
-    // Default icon colors
-    $default = ['bg-gray-100', 'text-gray-600'];
-    
-    foreach ($icons as $name => $colors) {
-        if (stripos($sensorName, $name) !== false) {
-            return $colors;
-        }
-    }
-    
-    return $default;
-}
+
 
 /**
  * Format last hit time
@@ -80,5 +59,92 @@ function formatLastHitTime($timestamp) {
     
     $time = new DateTime($timestamp);
     return '<span class="font-medium text-gray-700">' . $time->format('H:i:s') . '</span>';
+}
+
+function getSensorsWithCumulativeStats() {
+    global $pdo;
+    
+    try {
+        $stmt = $pdo->prepare("
+            SELECT 
+                s.id,
+                s.name,
+                s.status,
+                s.unit,
+                s.volume_per_hit,
+                COALESCE(SUM(s.volume_per_hit), 0) as total_volume,
+                COUNT(sd.id) as total_hits,
+                MAX(sd.timestamp) as last_hit_time
+            FROM sensors s
+            LEFT JOIN readings sd ON s.id = sd.sensor_id
+            GROUP BY s.id, s.name, s.status, s.unit, s.volume_per_hit
+            ORDER BY s.name
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Database error in getSensorsWithCumulativeStats: " . $e->getMessage());
+        return [];
+    }
+}
+
+function getCumulativeDailyStats($sensorId = null, $days = 30) {
+    global $pdo;
+    
+    try {
+        $whereClause = $sensorId ? "WHERE s.id = :sensor_id" : "";
+        $params = $sensorId ? [':sensor_id' => $sensorId] : [];
+        
+        $stmt = $pdo->prepare("
+            WITH daily_stats AS (
+                SELECT 
+                    s.id as sensor_id,
+                    s.name as sensor_name,
+                    DATE(sd.timestamp) as date,
+                    COUNT(sd.id) as daily_hits,
+                    COALESCE(SUM(s.volume_per_hit), 0) as daily_volume
+                FROM sensors s
+                LEFT JOIN readings sd ON s.id = sd.sensor_id
+                $whereClause
+                GROUP BY s.id, s.name, DATE(sd.timestamp)
+                ORDER BY s.id, date
+            ),
+            cumulative_stats AS (
+                SELECT 
+                    sensor_id,
+                    sensor_name,
+                    date,
+                    daily_hits,
+                    daily_volume,
+                    SUM(daily_hits) OVER (PARTITION BY sensor_id ORDER BY date) as cumulative_hits,
+                    SUM(daily_volume) OVER (PARTITION BY sensor_id ORDER BY date) as cumulative_volume
+                FROM daily_stats
+                WHERE date IS NOT NULL
+            )
+            SELECT * FROM cumulative_stats
+            WHERE date >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+            ORDER BY sensor_id, date
+        ");
+        
+        $params[':days'] = $days;
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Database error in getCumulativeDailyStats: " . $e->getMessage());
+        return [];
+    }
+}
+
+function getAllSensors() {
+    global $pdo;
+    
+    try {
+        $stmt = $pdo->prepare("SELECT id, name, location, status, unit FROM sensors ORDER BY name");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Database error in getAllSensors: " . $e->getMessage());
+        return [];
+    }
 }
 ?>

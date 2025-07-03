@@ -2,7 +2,7 @@
 // General application configuration
 
 // Application settings
-define('APP_NAME', 'Sensors Dashboard');
+define('APP_NAME', 'Client Name');
 define('APP_VERSION', '1.0.0');
 define('APP_ENV', 'development'); // development, production, testing
 

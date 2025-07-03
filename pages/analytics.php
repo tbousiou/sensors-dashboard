@@ -1,228 +1,187 @@
 <?php
 require_once '../config/config.php';
+require_once '../includes/auth.php';
+requireAuth();
+
 require_once '../includes/sensor_data.php';
 require_once '../includes/header.php';
 
-$sensors = getSensorsWithTodayStats();
+// Get selected sensor or default to first sensor
+$selectedSensorId = $_GET['sensor'] ?? null;
+$sensors = getSensorsWithCumulativeStats();
+$cumulativeStats = getCumulativeDailyStats($selectedSensorId, 30);
+
+// If no sensor selected, use the first one
+if (!$selectedSensorId && !empty($sensors)) {
+    $selectedSensorId = $sensors[0]['id'];
+    $cumulativeStats = getCumulativeDailyStats($selectedSensorId, 30);
+}
+
+// Filter stats for selected sensor
+$sensorStats = array_filter($cumulativeStats, function($stat) use ($selectedSensorId) {
+    return $stat['sensor_id'] == $selectedSensorId;
+});
+
+// Prepare data for charts
+$dates = [];
+$cumulativeHits = [];
+$cumulativeVolumes = [];
+
+foreach ($sensorStats as $stat) {
+    $dates[] = date('M j', strtotime($stat['date']));
+    $cumulativeHits[] = $stat['cumulative_hits'];
+    $cumulativeVolumes[] = round($stat['cumulative_volume'], 2);
+}
 ?>
 
-<!-- Main Content -->
 <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Page Title -->
+    <!-- Page Header -->
     <div class="mb-8">
-        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Sensor Analytics</h2>
-        <p class="text-gray-600">30-day trend analysis and detailed charts for all sensors</p>
-        <a href="../index.php" class="inline-flex items-center mt-3 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
-            ← Back to Dashboard
-        </a>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div class="mb-4 sm:mb-0">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Analytics Dashboard</h2>
+                <p class="text-gray-600">Cumulative sensor data trends and insights</p>
+            </div>
+            <a href="../index.php" class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                ← Back to Dashboard
+            </a>
+        </div>
     </div>
 
-    <!-- Charts Grid -->
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <?php foreach ($sensors as $sensor): ?>
-            <?php 
-            $iconColors = getSensorIcon($sensor['name']);
-            $isActive = $sensor['status'] === 'active';
-            ?>
-            <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-                <!-- Sensor Header -->
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center">
-                        <div class="<?= $iconColors[0] ?> p-2 rounded-lg mr-3">
-                            <svg class="w-6 h-6 <?= $iconColors[1] ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v4l5 9H5l5-9V3h4-4"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3h6"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900"><?= htmlspecialchars($sensor['name']) ?></h3>
-                            <p class="text-sm text-gray-500"><?= htmlspecialchars($sensor['location']) ?></p>
-                        </div>
-                    </div>
-                    <?= getStatusBadge($sensor['status']) ?>
-                </div>
-
-                <!-- Quick Stats -->
-                <div class="grid grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-                    <div class="text-center">
-                        <div class="text-xl font-bold text-gray-900">
-                            <?= $isActive ? $sensor['hits_today'] : '--' ?>
-                        </div>
-                        <p class="text-xs text-gray-500">Today's Hits</p>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-xl font-bold text-blue-600">
-                            <?= $isActive ? number_format($sensor['total_volume_today'], 1) : '--' ?> <?= htmlspecialchars($sensor['unit']) ?>
-                        </div>
-                        <p class="text-xs text-gray-500">Today's Volume</p>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-xl font-bold text-gray-900">
-                            <?= number_format($sensor['volume_per_hit'], 2) ?> <?= htmlspecialchars($sensor['unit']) ?>
-                        </div>
-                        <p class="text-xs text-gray-500">Per Hit</p>
-                    </div>
-                </div>
-
-                <!-- Chart Container -->
-                <div class="mb-4">
-                    <div class="flex justify-between items-center mb-3">
-                        <h4 class="text-sm font-medium text-gray-700">30-Day Trend</h4>
-                        <div class="flex space-x-2">
-                            <button onclick="switchChart(<?= $sensor['id'] ?>, 'hits')" 
-                                    id="btn-hits-<?= $sensor['id'] ?>"
-                                    class="px-2 py-1 text-xs bg-blue-500 text-white rounded">
-                                Hits
-                            </button>
-                            <button onclick="switchChart(<?= $sensor['id'] ?>, 'volume')" 
-                                    id="btn-volume-<?= $sensor['id'] ?>"
-                                    class="px-2 py-1 text-xs bg-gray-300 text-gray-700 rounded">
-                                Volume
-                            </button>
-                        </div>
-                    </div>
-                    <div class="h-64 bg-gray-50 rounded-lg p-2">
-                        <canvas id="chart-<?= $sensor['id'] ?>" class="w-full h-full"></canvas>
-                    </div>
-                </div>
-
-                <!-- Last Hit Info -->
-                <div class="text-center text-sm text-gray-500">
-                    Last hit: <?= $isActive ? formatLastHitTime($sensor['last_hit_time']) : '<span class="font-medium text-gray-400">Under maintenance</span>' ?>
-                </div>
+    <!-- Sensor Selection -->
+    <div class="mb-8">
+        <form action="" method="GET" class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex-1 mb-4 sm:mb-0">
+                <label for="sensor" class="block text-sm font-medium text-gray-700 mb-1">Select Sensor</label>
+                <select id="sensor" name="sensor" onchange="this.form.submit()" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <?php foreach ($sensors as $sensor): ?>
+                        <option value="<?= $sensor['id'] ?>" <?= $selectedSensorId == $sensor['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($sensor['name']) ?> 
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
-        <?php endforeach; ?>
+           
+        </form>
+    </div>
 
-        <?php if (empty($sensors)): ?>
-            <div class="col-span-full text-center py-12">
-                <div class="text-gray-400 text-lg">No sensors found</div>
-                <p class="text-gray-500 mt-2">Please check your database connection and ensure sensors are configured.</p>
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Cumulative Hits Chart -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Cumulative Hits Over Time</h3>
+            <canvas id="cumulativeHitsChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Cumulative Volume Chart -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Cumulative Volume Over Time</h3>
+            <canvas id="cumulativeVolumeChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Summary Statistics</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="text-sm font-medium text-gray-500 mb-1">Total Hits (30 days)</div>
+                <div class="text-xl font-bold text-gray-900"><?= number_format(array_sum(array_column($sensorStats, 'cumulative_hits'))) ?></div>
             </div>
-        <?php endif; ?>
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="text-sm font-medium text-gray-500 mb-1">Total Volume (30 days)</div>
+                <div class="text-xl font-bold text-gray-900"><?= number_format(array_sum(array_column($sensorStats, 'cumulative_volume')), 2) ?> L</div>
+            </div>
+        </div>
     </div>
 </main>
 
-<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-let charts = {};
-let chartData = {};
+    // Chart data
+    const dates = <?= json_encode($dates) ?>;
+    const cumulativeHits = <?= json_encode($cumulativeHits) ?>;
+    const cumulativeVolumes = <?= json_encode($cumulativeVolumes) ?>;
 
-// Load all charts on page load
-document.addEventListener('DOMContentLoaded', async function() {
-    <?php foreach ($sensors as $sensor): ?>
-        await loadSensorChart(<?= $sensor['id'] ?>, '<?= htmlspecialchars($sensor['name']) ?>');
-    <?php endforeach; ?>
-});
-
-async function loadSensorChart(sensorId, sensorName) {
-    try {
-        const response = await fetch(`../api/get_sensor_chart_data.php?sensor_id=${sensorId}&days=30`);
-        const data = await response.json();
-        
-        if (data.error) {
-            console.error('Error loading chart data:', data.error);
-            return;
-        }
-        
-        // Store data for switching between views
-        chartData[sensorId] = data;
-        
-        const ctx = document.getElementById(`chart-${sensorId}`).getContext('2d');
-        
-        charts[sensorId] = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    label: 'Daily Hits',
-                    data: data.hits,
-                    borderColor: 'rgb(59, 130, 246)',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    tension: 0.1,
-                    fill: true,
-                    pointRadius: 3,
-                    pointHoverRadius: 5
-                }]
+    // Cumulative Hits Chart
+    const cumulativeHitsCtx = document.getElementById('cumulativeHitsChart').getContext('2d');
+    new Chart(cumulativeHitsCtx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Cumulative Hits',
+                data: cumulativeHits,
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
                     }
                 },
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    title: {
-                        display: true,
-                        text: `${sensorName} - Daily Hits`,
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        }
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
                     }
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
                 }
             }
-        });
-    } catch (error) {
-        console.error('Error loading chart:', error);
-        // Show error message in chart area
-        const ctx = document.getElementById(`chart-${sensorId}`).getContext('2d');
-        ctx.fillStyle = '#6B7280';
-        ctx.font = '14px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Error loading chart data', ctx.canvas.width / 2, ctx.canvas.height / 2);
-    }
-}
+        }
+    });
 
-function switchChart(sensorId, type) {
-    const chart = charts[sensorId];
-    const data = chartData[sensorId];
-    
-    if (!chart || !data) return;
-    
-    // Update button states
-    document.getElementById(`btn-hits-${sensorId}`).className = 
-        type === 'hits' ? 'px-2 py-1 text-xs bg-blue-500 text-white rounded' : 'px-2 py-1 text-xs bg-gray-300 text-gray-700 rounded';
-    document.getElementById(`btn-volume-${sensorId}`).className = 
-        type === 'volume' ? 'px-2 py-1 text-xs bg-blue-500 text-white rounded' : 'px-2 py-1 text-xs bg-gray-300 text-gray-700 rounded';
-    
-    // Update chart data
-    if (type === 'hits') {
-        chart.data.datasets[0].data = data.hits;
-        chart.data.datasets[0].label = 'Daily Hits';
-        chart.data.datasets[0].borderColor = 'rgb(59, 130, 246)';
-        chart.data.datasets[0].backgroundColor = 'rgba(59, 130, 246, 0.1)';
-        chart.options.plugins.title.text = chart.options.plugins.title.text.replace('Daily Volume', 'Daily Hits');
-    } else {
-        chart.data.datasets[0].data = data.volumes;
-        chart.data.datasets[0].label = 'Daily Volume (L)';
-        chart.data.datasets[0].borderColor = 'rgb(16, 185, 129)';
-        chart.data.datasets[0].backgroundColor = 'rgba(16, 185, 129, 0.1)';
-        chart.options.plugins.title.text = chart.options.plugins.title.text.replace('Daily Hits', 'Daily Volume');
-    }
-    
-    chart.update();
-}
-
-// Auto-refresh charts every 5 minutes
-setInterval(async function() {
-    <?php foreach ($sensors as $sensor): ?>
-        await loadSensorChart(<?= $sensor['id'] ?>, '<?= htmlspecialchars($sensor['name']) ?>');
-    <?php endforeach; ?>
-}, 300000); // 5 minutes
+    // Cumulative Volume Chart
+    const cumulativeVolumeCtx = document.getElementById('cumulativeVolumeChart').getContext('2d');
+    new Chart(cumulativeVolumeCtx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Cumulative Volume',
+                data: cumulativeVolumes,
+                borderColor: 'rgb(16, 185, 129)',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        }
+    });
 </script>
+
+
 
 <?php require_once '../includes/footer.php'; ?>

@@ -1,10 +1,15 @@
 <?php
 require_once 'config/config.php';
+require_once 'includes/auth.php';
+requireAuth();
+
 require_once 'includes/sensor_data.php';
 require_once 'includes/header.php';
 
 // Fetch sensor data
-$sensors = getSensorsWithTodayStats();
+$sensors = getSensorsWithCumulativeStats();
+
+
 ?>
 
 <!-- Main Content -->
@@ -13,83 +18,98 @@ $sensors = getSensorsWithTodayStats();
     <div class="mb-8">
         <div class="flex justify-between items-center">
             <div>
-                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Sensors Dashboard</h2>
-                <p class="text-gray-600">Real-time monitoring of sensor readings and volume metrics</p>
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Dashboard</h2>
+                <p class="text-gray-600">Real-time monitoring of sensor readings and cumulative metrics</p>
             </div>
-            <a href="pages/analytics.php" class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                📊 View Analytics
-            </a>
+            <div class="flex space-x-3">
+                <button onclick="window.location.reload()" class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                    🔄 Refresh
+                </button>
+                <a href="pages/analytics.php" class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    📊 View Analytics
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- Sensors Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <?php foreach ($sensors as $sensor): ?>
             <?php
-            $iconColors = getSensorIcon($sensor['name']);
             $isActive = $sensor['status'] === 'active';
             ?>
-            <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-                <!-- Centered Sensor Icon -->
-                <div class="flex justify-center mb-4">
-                    <div class="<?= $iconColors[0] ?> p-3 rounded-lg">
-                        <svg class="w-8 h-8 <?= $iconColors[1] ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            
-                        </svg>
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300">
+                <!-- Header Section -->
+                <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-white p-2.5 rounded-lg shadow-sm">
+                                <img src="assets/images/bottle.png" alt="Sensor" class="w-8 h-8">
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900"><?= htmlspecialchars($sensor['name']) ?></h3>
+                            </div>
+                        </div>
+                        <?= getStatusBadge($sensor['status']) ?>
                     </div>
                 </div>
 
-                <!-- Header with title and status -->
-                <div class="flex items-start justify-between mb-4">
-                    <div class="text-center flex-1">
-                        <h3 class="text-lg font-semibold text-gray-900"><?= htmlspecialchars($sensor['name']) ?></h3>
-                        <p class="text-sm text-gray-500"><?= htmlspecialchars($sensor['location']) ?></p>
-                    </div>
-                    <!-- Status Badge -->
-                    <?= getStatusBadge($sensor['status']) ?>
-                </div>
-
-                <!-- Total Value -->
-                <div class="mb-4">
-                    <?php if ($isActive): ?>
-                        <div class="text-3xl font-bold text-industrial-600 mb-1">
-                            <?= number_format($sensor['total_volume_today'], 1) ?> <?= htmlspecialchars($sensor['unit']) ?>
-                        </div>
-                        <p class="text-sm text-gray-500">Today's Total Volume</p>
-                    <?php else: ?>
-                        <div class="text-3xl font-bold text-gray-400 mb-1">
-                            -- <?= htmlspecialchars($sensor['unit']) ?>
-                        </div>
-                        <p class="text-sm text-gray-500">Today's Total Volume</p>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Stats -->
-                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                    <div>
-                        <?php if ($isActive): ?>
-                            <div class="text-lg font-semibold text-gray-900"><?= $sensor['hits_today'] ?></div>
+                <!-- Main Content -->
+                <div class="p-6">
+                    <!-- Primary Metric -->
+                    <div class="text-center mb-6">
+                        <?php if ($isActive && $sensor['total_volume'] > 0): ?>
+                            <div class="text-4xl font-black text-industrial-600 mb-2 tracking-tight">
+                                <?= number_format($sensor['total_volume'], 1) ?> <?= htmlspecialchars($sensor['unit']) ?>
+                            </div>
                         <?php else: ?>
-                            <div class="text-lg font-semibold text-gray-400">--</div>
+                            <div class="text-4xl font-black text-gray-400 mb-2 tracking-tight">
+                                -- <?= htmlspecialchars($sensor['unit']) ?>
+                            </div>
                         <?php endif; ?>
-                        <p class="text-xs text-gray-500">Hits Today</p>
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Total Volume</p>
                     </div>
-                    <div>
-                        <div class="text-lg font-semibold text-gray-900">
-                            <?= number_format($sensor['volume_per_hit'], 2) ?> <?= htmlspecialchars($sensor['unit']) ?>
-                        </div>
-                        <p class="text-xs text-gray-500">Per Hit</p>
-                    </div>
-                </div>
 
-                <!-- Last Hit Time -->
-                <div class="mt-4 pt-3 border-t border-gray-100 text-center">
-                    <?php if ($isActive): ?>
-                        <p class="text-sm text-gray-500">Last hit: <?= formatLastHitTime($sensor['last_hit_time']) ?></p>
-                    <?php else: ?>
-                        <p class="text-sm text-gray-400">Last hit: <span class="font-medium">Under maintenance</span></p>
-                    <?php endif; ?>
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-2 gap-6 mb-6">
+                        <div class="text-center">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <?php if ($isActive && $sensor['total_hits'] > 0): ?>
+                                    <div class="text-2xl font-bold text-gray-900 mb-1"><?= $sensor['total_hits'] ?></div>
+                                <?php else: ?>
+                                    <div class="text-2xl font-bold text-gray-400 mb-1">--</div>
+                                <?php endif; ?>
+                                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Hits</p>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="text-2xl font-bold text-gray-900 mb-1">
+                                    <?= number_format($sensor['volume_per_hit'], 2) ?> <?= htmlspecialchars($sensor['unit']) ?>
+                                </div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Per Hit</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Information -->
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <div class="flex items-center justify-center space-x-2">
+                            <?php if ($isActive): ?>
+                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <p class="text-sm text-gray-600">
+                                    Last hit: <span class="font-semibold text-gray-800">
+                                        <?= $sensor['last_hit_time'] ? formatLastHitTime($sensor['last_hit_time']) : 'No hits' ?>
+                                    </span>
+                                </p>
+                            <?php else: ?>
+                                <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                <p class="text-sm text-gray-600">
+                                    Last hit: <span class="font-semibold text-gray-500">Under maintenance</span>
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
             </div>
         <?php endforeach; ?>
@@ -98,6 +118,11 @@ $sensors = getSensorsWithTodayStats();
             <div class="col-span-full text-center py-12">
                 <div class="text-gray-400 text-lg">No sensors found</div>
                 <p class="text-gray-500 mt-2">Please check your database connection and ensure sensors are configured.</p>
+                <?php if (isset($pdo)): ?>
+                    <p class="text-gray-500 mt-1">Database connection: OK</p>
+                <?php else: ?>
+                    <p class="text-red-500 mt-1">Database connection: Failed</p>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>
@@ -107,16 +132,7 @@ $sensors = getSensorsWithTodayStats();
             window.location.reload();
         }, 30000);
 
-        // Optional: Add a refresh button
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add refresh button to page title area
-            const titleDiv = document.querySelector('.mb-8');
-            const refreshBtn = document.createElement('button');
-            refreshBtn.innerHTML = '🔄 Refresh';
-            refreshBtn.className = 'ml-4 px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600';
-            refreshBtn.onclick = () => window.location.reload();
-            titleDiv.querySelector('h2').appendChild(refreshBtn);
-        });
+        
     </script>
 </main>
 

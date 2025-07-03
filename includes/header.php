@@ -54,9 +54,15 @@
                        class="text-gray-500 hover:text-industrial-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                         Analytics
                     </a>
-                    <a href="#" class="text-gray-500 hover:text-industrial-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Login
-                    </a>
+                    
+                    <!-- User Info and Logout -->
+                    <div class="flex items-center space-x-3 ml-4 pl-4 border-l border-gray-200">
+                        
+                        <a href="<?= str_contains($_SERVER['REQUEST_URI'], 'pages/') ? '../logout.php' : 'logout.php' ?>" 
+                           class="text-red-600 hover:text-red-800 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            Logout
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,4 +1,14 @@
 <?php
+require_once '../config/config.php';
+require_once '../includes/auth.php';
+
+// Check if user is authenticated
+if (!isAuthenticated()) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Authentication required']);
+    exit;
+}
+
 require_once '../config/database.php';
 
 header('Content-Type: application/json');
