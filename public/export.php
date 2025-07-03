@@ -1,14 +1,14 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../app/config/config.php';
+require_once __DIR__ . '/config/config.php';
 
-require_once __DIR__ . '/../app/includes/auth.php';
+require_once __DIR__ . '/includes/auth.php';
 
 
 requireAuth();
 
 
-require_once __DIR__ . '/../app/includes/sensor_data.php';
+require_once __DIR__ . '/includes/sensor_data.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
