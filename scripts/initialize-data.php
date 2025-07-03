@@ -1,9 +1,22 @@
 <?php
-require_once 'app/config/database.php';
+// Load environment variables
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
+
+require_once __DIR__ . '/../app/config/database.php';
 
 try {
-    $pdo = new PDO("mysql:host=localhost;dbname=sensors_dashboard", 'devuser', 'devpass123');
+    // Use environment variables for database connection
+    $host = $_ENV['DB_HOST'] ?? 'localhost';
+    $dbname = $_ENV['DB_NAME'] ?? 'sensors_dashboard';
+    $username = $_ENV['DB_USER'] ?? 'devuser';
+    $password = $_ENV['DB_PASS'] ?? 'devpass123';
+    
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
     
     // Clear existing data
     $pdo->exec("DELETE FROM readings");

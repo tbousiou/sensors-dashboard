@@ -147,4 +147,42 @@ function getAllSensors() {
         return [];
     }
 }
+
+function getTotalSensorReadingsCount($sensorId) {
+    global $pdo;
+    
+    $sql = "SELECT COUNT(*) FROM readings WHERE sensor_id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$sensorId]);
+    
+    return $stmt->fetchColumn();
+}
+
+function getSensorReadingsPaginated($sensorId, $limit = 50, $offset = 0) {
+    global $pdo;
+    
+    $sql = "SELECT 
+                r.timestamp,
+                (
+                    SELECT COUNT(*) * s.volume_per_hit 
+                    FROM readings r2 
+                    WHERE r2.sensor_id = ? 
+                    AND r2.timestamp <= r.timestamp
+                ) as volume
+            FROM readings r
+            JOIN sensors s ON r.sensor_id = s.id
+            WHERE r.sensor_id = ? 
+            ORDER BY r.timestamp DESC 
+            LIMIT ? OFFSET ?";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$sensorId, $sensorId, $limit, $offset]);
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getSensorReadings($sensorId, $limit = 100) {
+    // Keep for backward compatibility, now uses pagination function
+    return getSensorReadingsPaginated($sensorId, $limit, 0);
+}
 ?>
