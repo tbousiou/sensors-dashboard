@@ -45,7 +45,9 @@ $sensors = getSensorsWithCumulativeStats();
                                 <img src="assets/images/bottle.png" alt="Sensor" class="w-8 h-8">
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-gray-900"><?= htmlspecialchars($sensor['name']) ?></h3>
+                                <a href="analytics.php?sensor=<?= $sensor['id'] ?>" class="text-lg font-bold text-gray-900 hover:text-blue-600 transition-colors">
+                                    <?= htmlspecialchars($sensor['name']) ?>
+                                </a>
                             </div>
                         </div>
                         <?= getStatusBadge($sensor['status']) ?>
