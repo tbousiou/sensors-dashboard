@@ -47,8 +47,6 @@ function getStatusBadge($status) {
     return $badges[$status] ?? $badges['inactive'];
 }
 
-
-
 /**
  * Format last hit time
  */
@@ -135,16 +133,45 @@ function getCumulativeDailyStats($sensorId = null, $days = 30) {
     }
 }
 
+/**
+ * Get all sensors
+ */
 function getAllSensors() {
     global $pdo;
-    
     try {
-        $stmt = $pdo->prepare("SELECT id, name, location, status, unit FROM sensors ORDER BY name");
-        $stmt->execute();
+        $stmt = $pdo->query("SELECT * FROM sensors ORDER BY name");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        error_log("Database error in getAllSensors: " . $e->getMessage());
+        error_log("Error fetching sensors: " . $e->getMessage());
         return [];
+    }
+}
+
+/**
+ * Update sensor information
+ */
+function updateSensor($id, $name, $volumePerHit, $unit, $status) {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("UPDATE sensors SET name = ?, volume_per_hit = ?, unit = ?, status = ? WHERE id = ?");
+        return $stmt->execute([$name, $volumePerHit, $unit, $status, $id]);
+    } catch (PDOException $e) {
+        error_log("Error updating sensor: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Clear all readings from the database
+ */
+function clearAllReadings() {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("DELETE FROM readings");
+        return $stmt->execute();
+    } catch (PDOException $e) {
+        error_log("Error clearing readings: " . $e->getMessage());
+        return false;
     }
 }
 
