@@ -36,7 +36,7 @@ $sensors = getSensorsWithCumulativeStats();
             <?php
             $isActive = $sensor['status'] === 'active';
             ?>
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300">
+            <div class="lg:min-w-[300px] bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300">
                 <!-- Header Section -->
                 <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4">
                     <div class="flex items-center justify-between">
@@ -127,10 +127,10 @@ $sensors = getSensorsWithCumulativeStats();
         <?php endif; ?>
     </div>
     <script>
-        // Auto-refresh the page every 30 seconds for real-time updates
+        // Auto-refresh the page every 120 seconds for real-time updates
         setTimeout(function() {
             window.location.reload();
-        }, 30000);
+        }, 120000);
 
         
     </script>
