@@ -12,3 +12,6 @@ error_log
 
 # Vendor directory
 vendor/
+
+# Node modules
+node_modules/

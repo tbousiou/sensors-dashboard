@@ -4,40 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sensors Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        industrial: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            900: '#0c4a6e'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="assets/css/style.css" rel="stylesheet">
+    
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
     <nav class="bg-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center space-x-8">
-                    <h1 class="text-xl font-bold text-industrial-700"><?= APP_NAME ?></h1>
+                    <h1 class="text-xl font-bold text-sky-700"><?= APP_NAME ?></h1>
                     <nav class="hidden md:flex space-x-6">
-                        <a href="<?= getCurrentPageUrl('index.php') ?>" class="text-gray-700 hover:text-industrial-600 px-3 py-2 text-sm font-medium transition-colors">
+                        <a href="<?= getCurrentPageUrl('index.php') ?>" class="text-gray-700 hover:text-sky-600 px-3 py-2 text-sm font-medium transition-colors">
                             📊 Dashboard
                         </a>
-                        <a href="<?= getCurrentPageUrl('analytics.php') ?>" class="text-gray-700 hover:text-industrial-600 px-3 py-2 text-sm font-medium transition-colors">
+                        <a href="<?= getCurrentPageUrl('analytics.php') ?>" class="text-gray-700 hover:text-sky-600 px-3 py-2 text-sm font-medium transition-colors">
                             📈 Analytics
                         </a>
-                        <a href="<?= getCurrentPageUrl('manage.php') ?>" class="text-gray-700 hover:text-industrial-600 px-3 py-2 text-sm font-medium transition-colors">
+                        <a href="<?= getCurrentPageUrl('manage.php') ?>" class="text-gray-700 hover:text-sky-600 px-3 py-2 text-sm font-medium transition-colors">
                             ⚙️ Management
                         </a>
                     </nav>
@@ -46,7 +29,7 @@
                     <span class="text-sm text-gray-600 hidden sm:block">Welcome, <?= $_SESSION['username'] ?></span>
                     <a href="<?= getCurrentLogoutUrl() ?>" class="text-red-600 hover:text-red-800 hidden sm:block">Logout</a>
                     <!-- Mobile menu button -->
-                    <button id="mobile-menu-button" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-industrial-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-industrial-500">
+                    <button id="mobile-menu-button" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-sky-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
@@ -56,13 +39,13 @@
             <!-- Mobile menu -->
             <div id="mobile-menu" class="md:hidden hidden">
                 <div class="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
-                    <a href="<?= getCurrentPageUrl('index.php') ?>" class="text-gray-700 hover:text-industrial-600 hover:bg-gray-50 block px-3 py-2 text-base font-medium transition-colors">
+                    <a href="<?= getCurrentPageUrl('index.php') ?>" class="text-gray-700 hover:text-sky-600 hover:bg-gray-50 block px-3 py-2 text-base font-medium transition-colors">
                         📊 Dashboard
                     </a>
-                    <a href="<?= getCurrentPageUrl('analytics.php') ?>" class="text-gray-700 hover:text-industrial-600 hover:bg-gray-50 block px-3 py-2 text-base font-medium transition-colors">
+                    <a href="<?= getCurrentPageUrl('analytics.php') ?>" class="text-gray-700 hover:text-sky-600 hover:bg-gray-50 block px-3 py-2 text-base font-medium transition-colors">
                         📈 Analytics
                     </a>
-                    <a href="<?= getCurrentPageUrl('manage.php') ?>" class="text-gray-700 hover:text-industrial-600 hover:bg-gray-50 block px-3 py-2 text-base font-medium transition-colors">
+                    <a href="<?= getCurrentPageUrl('manage.php') ?>" class="text-gray-700 hover:text-sky-600 hover:bg-gray-50 block px-3 py-2 text-base font-medium transition-colors">
                         ⚙️ Management
                     </a>
                     <div class="border-t border-gray-200 pt-3">

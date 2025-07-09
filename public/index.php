@@ -59,7 +59,7 @@ $sensors = getSensorsWithCumulativeStats();
                     <!-- Primary Metric -->
                     <div class="text-center mb-6">
                         <?php if ($isActive && $sensor['total_volume'] > 0): ?>
-                            <div class="text-4xl font-black text-industrial-600 mb-2 tracking-tight">
+                            <div class="text-4xl font-black text-sky-600 mb-2 tracking-tight">
                                 <?= number_format($sensor['total_volume'], 1) ?> <?= htmlspecialchars($sensor['unit']) ?>
                             </div>
                         <?php else: ?>

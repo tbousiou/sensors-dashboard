@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.11"
+  },
+  "name": "sensors-dashboard",
+  "version": "1.0.0",
+  "description": "A real-time sensor monitoring dashboard built with PHP, MySQL, and Tailwind CSS. Track sensor readings, view analytics, and manage sensor data through a clean web interface.",
+  "main": "index.js",
+  "devDependencies": {
+    "postcss-cli": "^11.0.1",
+    "autoprefixer": "^10.4.16"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "postcss src/input.css -o public/assets/css/style.css",
+    "watch": "postcss src/input.css -o public/assets/css/style.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tbousiou/sensors-dashboard.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tbousiou/sensors-dashboard/issues"
+  },
+  "homepage": "https://github.com/tbousiou/sensors-dashboard#readme"
+}
