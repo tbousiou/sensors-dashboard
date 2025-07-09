@@ -42,7 +42,7 @@ $sensors = getSensorsWithCumulativeStats();
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                             <div class="bg-white p-2.5 rounded-lg shadow-sm">
-                                <img src="assets/images/bottle.png" alt="Sensor" class="w-8 h-8">
+                                <img src="assets/images/bottle.svg" alt="Sensor" class="w-10 h-10">
                             </div>
                             <div>
                                 <a href="analytics.php?sensor=<?= $sensor['id'] ?>" class="text-lg font-bold text-gray-900 hover:text-blue-600 transition-colors">

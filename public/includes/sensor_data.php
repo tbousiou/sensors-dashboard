@@ -52,11 +52,33 @@ function getStatusBadge($status) {
  */
 function formatLastHitTime($timestamp) {
     if (!$timestamp) {
-        return '<span class="font-medium text-gray-400">No hits today</span>';
+        return '<span class="font-medium text-gray-400">No hits recorded</span>';
     }
     
     $time = new DateTime($timestamp);
-    return '<span class="font-medium text-gray-700">' . $time->format('H:i:s') . '</span>';
+    $now = new DateTime();
+    
+    // Check if it's today
+    if ($time->format('Y-m-d') === $now->format('Y-m-d')) {
+        return '<span class="font-medium text-gray-700">Today at ' . $time->format('H:i:s') . '</span>';
+    }
+    
+    // Check if it's yesterday
+    $yesterday = clone $now;
+    $yesterday->modify('-1 day');
+    if ($time->format('Y-m-d') === $yesterday->format('Y-m-d')) {
+        return '<span class="font-medium text-gray-700">Yesterday at ' . $time->format('H:i:s') . '</span>';
+    }
+    
+    // Check if it's within the last 7 days
+    $weekAgo = clone $now;
+    $weekAgo->modify('-7 days');
+    if ($time >= $weekAgo) {
+        return '<span class="font-medium text-gray-700">' . $time->format('D, M j') . ' at ' . $time->format('H:i:s') . '</span>';
+    }
+    
+    // For older dates, show full date
+    return '<span class="font-medium text-gray-700">' . $time->format('M j, Y') . ' at ' . $time->format('H:i:s') . '</span>';
 }
 
 function getSensorsWithCumulativeStats() {
