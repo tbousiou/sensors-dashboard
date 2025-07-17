@@ -7,7 +7,7 @@ CREATE TABLE sensors (
     name VARCHAR(50) NOT NULL,
     volume_per_hit DECIMAL(10,2) NOT NULL COMMENT 'Volume increment per sensor hit (e.g., 1.5 litres)',
     unit VARCHAR(10) DEFAULT 'L' COMMENT 'Unit of measurement (L, m³, etc.)',
-    status ENUM('active', 'inactive', 'maintenance') DEFAULT 'active',
+    status ENUM('active', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

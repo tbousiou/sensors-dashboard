@@ -90,7 +90,15 @@ foreach ($sensorStats as $stat) {
                 </div>
                 <div class="p-4 bg-gray-50 rounded-lg">
                     <div class="text-sm font-medium text-gray-500 mb-1">Total Volume (30 days)</div>
-                    <div class="text-xl font-bold text-gray-900"><?= number_format(end($cumulativeVolumes) ?: 0, 2) ?> L</div>
+                    <div class="text-xl font-bold text-gray-900">
+                        <?= number_format(end($cumulativeVolumes) ?: 0, 2) ?> 
+                        <?php 
+                        $selectedSensor = array_filter($sensors, function($s) use ($selectedSensorId) { 
+                            return $s['id'] == $selectedSensorId; 
+                        });
+                        echo htmlspecialchars(reset($selectedSensor)['unit'] ?? 'L');
+                        ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -130,7 +138,12 @@ foreach ($sensorStats as $stat) {
                     <tr>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Counter</th>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cumulative Volume (L)</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cumulative Volume (<?php 
+                        $selectedSensor = array_filter($sensors, function($s) use ($selectedSensorId) { 
+                            return $s['id'] == $selectedSensorId; 
+                        });
+                        echo htmlspecialchars(reset($selectedSensor)['unit'] ?? 'L');
+                        ?>)</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -223,6 +236,9 @@ foreach ($sensorStats as $stat) {
     const dates = <?= json_encode($dates) ?>;
     const cumulativeHits = <?= json_encode($cumulativeHits) ?>;
     const cumulativeVolumes = <?= json_encode($cumulativeVolumes) ?>;
+    
+    // Get sensor unit
+    const sensorUnit = <?= json_encode(reset($selectedSensor)['unit'] ?? 'L') ?>;
 
     // Chart instance
     let analyticsChart;
@@ -238,10 +254,10 @@ foreach ($sensorStats as $stat) {
         volume: {
             title: 'Cumulative Volume Over Time',
             data: cumulativeVolumes,
-            label: 'Cumulative Volume (L)',
+            label: `Cumulative Volume (${sensorUnit})`,
             borderColor: 'rgb(16, 185, 129)',
             backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            yAxisTitle: 'Volume (L)'
+            yAxisTitle: `Volume (${sensorUnit})`
         },
         hits: {
             title: 'Cumulative Hits Over Time',

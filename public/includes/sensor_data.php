@@ -40,8 +40,7 @@ function getSensorsWithTodayStats() {
 function getStatusBadge($status) {
     $badges = [
         'active' => '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>',
-        'inactive' => '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>',
-        'maintenance' => '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Maintenance</span>'
+        'inactive' => '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>'
     ];
     
     return $badges[$status] ?? $badges['inactive'];
@@ -92,7 +91,7 @@ function getSensorsWithCumulativeStats() {
                 s.status,
                 s.unit,
                 s.volume_per_hit,
-                COALESCE(SUM(s.volume_per_hit), 0) as total_volume,
+                COUNT(sd.id) * s.volume_per_hit as total_volume,
                 COUNT(sd.id) as total_hits,
                 MAX(sd.timestamp) as last_hit_time
             FROM sensors s

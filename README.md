@@ -1,278 +1,240 @@
-# Sensors Dashboard
+# ESP32 Sensors Dashboard
 
-A real-time sensor monitoring dashboard built with PHP, MySQL, and Tailwind CSS. Track sensor readings, view analytics, and manage sensor data through a clean web interface.
+A comprehensive IoT solution for monitoring multiple sensors using ESP32, with real-time data collection and web-based dashboard visualization.
 
-## Features
+## 🏗️ Project Overview
 
-- **Real-time Dashboard**: Monitor sensor readings with auto-refresh functionality
-- **Sensor Management**: Track multiple sensors with status indicators
-- **Analytics**: View cumulative data trends and insights
-- **API Integration**: RESTful API for posting sensor data
-- **Authentication**: Secure login system with session management
-- **Responsive Design**: Works on desktop and mobile devices
+This project consists of:
+- **ESP32 Client**: Reads sensor data and posts to remote API
+- **Web Dashboard**: Displays real-time sensor statistics and historical data
+- **REST API Backend**: Handles data storage and retrieval
 
-## Screenshots
+## 📋 Features
 
-- Dashboard with sensor cards showing real-time data
-- Analytics page with sensor selection and data visualization
-- Clean, modern interface with Tailwind CSS
+- 6 configurable sensor inputs
+- WiFi connectivity with auto-reconnection
+- Secure HTTPS API communication
+- Local memory caching of sensor statistics
+- 30-second polling interval
+- Real-time data visualization
+- Cumulative statistics tracking
 
-## Requirements
+## 🔧 Hardware Requirements
 
-- PHP 7.4 or higher
-- MySQL 5.7 or higher
-- Composer
-- Web server (Apache/Nginx) or PHP built-in server
+### ESP32 Board
+- ESP32 DevKit or compatible board
+- USB cable for programming
+- Stable power supply (5V/3.3V)
 
-## Installation
+### Sensors
+- 6x Digital sensors (motion detectors, buttons, switches, etc.)
+- Pull-up/pull-down resistors if needed
+- Jumper wires for connections
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/yourusername/sensors-dashboard.git
-cd sensors-dashboard
+### Pin Configuration
+| Sensor ID | GPIO Pin |
+|-----------|----------|
+| 1         | 2        |
+| 2         | 4        |
+| 3         | 5        |
+| 4         | 18       |
+| 5         | 19       |
+| 6         | 21       |
+
+## 🚀 Getting Started
+
+### 1. Hardware Setup
+
+1. Connect your sensors to the designated GPIO pins
+2. Ensure proper grounding and power connections
+3. Add pull-up resistors (10kΩ) if using switches/buttons
+
+### 2. Software Installation
+
+#### Prerequisites
+- Arduino IDE 2.x or PlatformIO
+- ESP32 board package installed
+- Required libraries (see below)
+
+#### Required Libraries
+Install these libraries through Arduino IDE Library Manager:
+```
+WiFi (ESP32 built-in)
+HTTPClient (ESP32 built-in)
+WiFiClientSecure (ESP32 built-in)
+ArduinoJson by Benoit Blanchon (v6.x)
 ```
 
-### 2. Install dependencies
-```bash
-composer install
+### 3. Configuration
+
+#### WiFi Setup
+```cpp
+const char *ssid = "YOUR_WIFI_SSID";
+const char *password = "YOUR_WIFI_PASSWORD";
 ```
 
-### 3. Database Setup
-
-Create a MySQL database and import the schema:
-
-```sql
-CREATE DATABASE sensors_dashboard;
-
-CREATE TABLE sensors (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    location VARCHAR(255),
-    volume_per_hit DECIMAL(10,2) DEFAULT 0.50,
-    unit VARCHAR(10) DEFAULT 'L',
-    status ENUM('active', 'inactive', 'maintenance') DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE readings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    sensor_id INT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sensor_id) REFERENCES sensors(id) ON DELETE CASCADE,
-    INDEX idx_sensor_timestamp (sensor_id, timestamp)
-);
+#### API Configuration
+```cpp
+const char *serverURL = "https://sensors.bytefatale.eu/api/post_sensor_data.php";
+const char *statsURL = "https://sensors.bytefatale.eu/api/get_cumulative_stats.php";
+const char *apiKey = "abcd1234567890";  // Replace with your API key
 ```
 
-### 4. Environment Configuration
-
-Copy the environment file and configure your settings:
-
-```bash
-cp .env.example .env
+#### Sensor Customization
+Modify these arrays to match your setup:
+```cpp
+const int sensorIds[NUM_SENSORS] = {1, 2, 3, 4, 5, 6};      // Logical IDs
+const int sensorPins[NUM_SENSORS] = {2, 4, 5, 18, 19, 21};  // GPIO pins
 ```
 
-Edit `.env` with your database credentials:
+### 4. Upload and Run
 
-```env
-# Database Configuration
-DB_HOST=localhost
-DB_NAME=sensors_dashboard
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
+1. Connect ESP32 to computer via USB
+2. Select correct board and port in Arduino IDE
+3. Upload the sketch
+4. Open Serial Monitor (115200 baud) to view status
 
-# Authentication
-AUTH_USERNAME=admin
-AUTH_PASSWORD=your_secure_password
+## 📡 API Endpoints
 
-# API Configuration
-API_KEY=your_secure_api_key_here
+### POST Sensor Data
+```
+POST https://sensors.bytefatale.eu/api/post_sensor_data.php?sensor_id={id}
+Headers: X-API-Key: {your_api_key}
 ```
 
-### 5. Web Server Setup
-
-#### Using PHP Built-in Server (Development)
-```bash
-# Start from project root
-php -S localhost:8000 -t public
+### GET Cumulative Statistics
+```
+GET https://sensors.bytefatale.eu/api/get_cumulative_stats.php
+Headers: X-API-Key: {your_api_key}
 ```
 
-#### Using Apache/Nginx (Production)
-Point your web server document root to the `public/` directory.
-
-## Usage
-
-### Web Interface
-
-1. **Login**: Visit `http://localhost:8000` and login with your credentials
-2. **Dashboard**: View all sensors with real-time data
-3. **Analytics**: Click on sensor names or "View Analytics" for detailed insights
-4. **Auto-refresh**: Dashboard automatically refreshes every 30 seconds
-
-### API Endpoints
-
-#### POST Sensor Data
-```bash
-curl -X POST \
-  -H "X-API-Key: your_api_key" \
-  "http://localhost:8000/api/post_sensor_data.php?sensor_id=1"
-```
-
-**Parameters:**
-- `sensor_id` (required): ID of the sensor
-- `timestamp` (optional): Custom timestamp in format `YYYY-MM-DD HH:MM:SS`
-
-**Response:**
+### Response Format
 ```json
 {
-    "success": true,
-    "hit_id": 123,
-    "sensor_id": "1",
-    "sensor_name": "Sensor 1",
-    "timestamp": "2024-07-09 14:30:00",
-    "message": "Sensor data recorded successfully"
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "total_count": 42,
+      "last_triggered": "2024-01-15 10:30:00"
+    }
+  ]
 }
 ```
 
-#### Authentication Methods
-API key can be provided via:
-- Header: `X-API-Key: your_key`
-- POST data: `api_key=your_key`
-- Query parameter: `?api_key=your_key`
+## 💻 Code Usage Examples
 
-## Project Structure
+### Accessing Sensor Data
+```cpp
+// Get count for specific sensor
+int sensor1Count = sensorCounts[0]; // First sensor (ID 1)
 
-```
-sensors-dashboard/
-├── public/                  # Web accessible files
-│   ├── index.php           # Main dashboard
-│   ├── login.php           # Authentication
-│   ├── analytics.php       # Analytics page
-│   ├── api/               # API endpoints
-│   │   └── post_sensor_data.php
-│   └── assets/            # Static assets
-├── app/                    # Application logic
-│   ├── config/            # Configuration files
-│   └── includes/          # PHP includes
-├── .env                   # Environment variables
-├── composer.json          # Dependencies
-└── README.md             # This file
+// Loop through all sensors
+for (int i = 0; i < NUM_SENSORS; i++) {
+    int sensorId = sensorIds[i];
+    int count = sensorCounts[i];
+    Serial.println("Sensor " + String(sensorId) + ": " + String(count));
+}
 ```
 
-## Configuration
-
-### Database Schema
-
-**Sensors Table:**
-- `id`: Primary key
-- `name`: Sensor name
-- `location`: Physical location
-- `volume_per_hit`: Volume measurement per hit
-- `unit`: Measurement unit (L, mL, etc.)
-- `status`: active, inactive, maintenance
-
-**Readings Table:**
-- `id`: Primary key
-- `sensor_id`: Foreign key to sensors
-- `timestamp`: Reading timestamp
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DB_HOST` | Database host | localhost |
-| `DB_NAME` | Database name | sensors_dashboard |
-| `DB_USERNAME` | Database username | - |
-| `DB_PASSWORD` | Database password | - |
-| `AUTH_USERNAME` | Admin username | admin |
-| `AUTH_PASSWORD` | Admin password | - |
-| `API_KEY` | API authentication key | - |
-
-## Development
-
-### Adding New Sensors
-
-Insert sensors via SQL:
-```sql
-INSERT INTO sensors (name, location, volume_per_hit, unit, status) 
-VALUES ('Sensor 1', 'Building A', 0.50, 'L', 'active');
+### Find Sensor by ID
+```cpp
+int findSensorCount(int targetId) {
+    for (int i = 0; i < NUM_SENSORS; i++) {
+        if (sensorIds[i] == targetId) {
+            return sensorCounts[i];
+        }
+    }
+    return -1; // Not found
+}
 ```
 
-### Customizing the UI
+## 🔍 Monitoring and Debugging
 
-The dashboard uses Tailwind CSS for styling. Main components:
-- **Dashboard**: `public/index.php`
-- **Sensor Cards**: Responsive grid layout
-- **Analytics**: `public/analytics.php`
-- **Authentication**: `public/login.php`
-
-### API Integration
-
-Example Python script to post sensor data:
-```python
-import requests
-import json
-
-url = "http://localhost:8000/api/post_sensor_data.php"
-headers = {"X-API-Key": "your_api_key"}
-params = {"sensor_id": 1}
-
-response = requests.post(url, headers=headers, params=params)
-print(response.json())
+### Serial Output
+The ESP32 provides detailed logging:
+```
+Connecting to WiFi....
+WiFi connected!
+Loading sensor stats...
+✓ Sensor stats loaded successfully
+=== Example: Accessing sensor data ===
+Sensor 1: 42 triggers
+Sensor 2: 15 triggers
+...
 ```
 
-## Security
+### Status Indicators
+- `✓` Success operations
+- `✗` Failed operations
+- WiFi connection status
+- HTTP response codes
 
-- **Authentication**: Session-based login system
-- **API Security**: API key authentication for endpoints
-- **Input Validation**: Prepared statements prevent SQL injection
-- **Environment Variables**: Sensitive data stored in `.env` file
-- **File Structure**: Private files outside web root
+## ⚠️ Troubleshooting
 
-## Troubleshooting
+### WiFi Issues
+- **Connection fails**: Check SSID/password
+- **Frequent disconnections**: Verify signal strength
+- **IP conflicts**: Restart router/ESP32
 
-### Common Issues
+### API Communication
+- **HTTP 401**: Invalid API key
+- **HTTP 404**: Check server URL
+- **SSL errors**: Ensure stable internet connection
+- **Timeout errors**: Check network stability
 
-1. **Database Connection Failed**
-   - Check database credentials in `.env`
-   - Ensure MySQL service is running
-   - Verify database exists
+### Sensor Reading
+- **No sensor triggers**: Verify wiring and pin configuration
+- **False readings**: Add debouncing or filtering
+- **Inconsistent data**: Check power supply stability
 
-2. **API Key Invalid**
-   - Check API key in `.env` file
-   - Verify key format in request
+### Memory Issues
+- **JSON parsing fails**: Increase buffer size in `DynamicJsonDocument`
+- **Stack overflow**: Reduce local variables or use heap allocation
 
-3. **File Not Found Errors**
-   - Ensure server is started from correct directory
-   - Check file paths in includes
+## 📊 Performance Optimization
 
-4. **Permission Denied**
-   - Check file permissions
-   - Ensure web server has read access
+### Timing Configuration
+```cpp
+const unsigned long sensorInterval = 30000; // Adjust polling frequency
+```
 
-## Contributing
+### Memory Management
+- Current JSON buffer: 2048 bytes
+- Sensor array size: 6 sensors (configurable)
+- HTTP timeout: Default (adjust if needed)
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+## 🔒 Security Considerations
 
-## License
+- API key authentication
+- HTTPS encrypted communication
+- `client.setInsecure()` used for development (consider proper certificates for production)
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 🛠️ Customization
 
-## Support
+### Adding More Sensors
+1. Increase `NUM_SENSORS` constant
+2. Add entries to `sensorIds[]` and `sensorPins[]` arrays
+3. Ensure sufficient GPIO pins available
+
+### Changing Polling Frequency
+Modify `sensorInterval` (minimum recommended: 10 seconds)
+
+### Custom Sensor Logic
+Implement custom reading logic in `pollAndPostSensors()` function
+
+## 📞 Support
 
 For issues and questions:
-- Create an issue on GitHub
-- Check the troubleshooting section above
-- Review the configuration settings
+- Check Serial Monitor output
+- Verify hardware connections
+- Confirm API endpoint accessibility
+- Review network connectivity
 
-## Changelog
+## 📄 License
 
-### Version 1.0.0
-- Initial release with basic dashboard
-- Sensor management and monitoring
-- API endpoint for data collection
-- Authentication system
-- Responsive design
+This project is open source. Please check individual component licenses.
+
+---
+
+**Note**: Replace placeholder values (WiFi credentials, API key) with your actual configuration before deployment.
