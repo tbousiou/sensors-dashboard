@@ -140,7 +140,7 @@ void loadSensorStats()
             for (JsonObject sensor : sensors)
             {
                 int sensorId = sensor["id"];
-                int totalCount = sensor["total_count"];
+                int totalCount = sensor["total_hits"];
                 
                 // Find matching sensor in our array and update count
                 for (int i = 0; i < NUM_SENSORS; i++)
